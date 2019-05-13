@@ -19,23 +19,19 @@ def novaPublicacao(titulo, usuario, texto):
 		return False
 
 def write():
-    titulo = data.split(" ")[1]
-	#texto = " ".join(data.split(" ")[2:])
-    texto = data
-    usuario="oi"
-    if(novaPublicacao(titulo, usuario, texto)):
-        conn.send(byt("Message successfully sent\n"))
-    else:
-        conn.send(byt("There was a problem in your message\n"))
+	titulo = data.split(" ")[1]
+	texto = " ".join(data.split(" ")[2:])
+	usuario="oi"
+	if(novaPublicacao(titulo, usuario, texto)):
+		conn.send(byt("Message successfully sent\n"))
+	else:
+		conn.send(byt("There was a problem in your message\n"))
         #continue
 
 
 diretorio = os.getcwd() + "\\Blogs\\"
 if(not os.path.exists(diretorio)):
 	os.system("mkdir Blogs")
-
-
-
 
 
 s = socket(AF_INET, SOCK_STREAM)
