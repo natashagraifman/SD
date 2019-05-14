@@ -1,6 +1,20 @@
 from socket  import *
+import threading
 import os
 from os.path import expanduser
+
+connections = []
+total_connections = 0
+
+def newConnections(socket):
+    while True:
+        sock, address = s.accept()
+        global total_connections
+        connections.append(Client(s, address, total_connections, "Name", True))
+        connections[len(connections) - 1].start()
+        print("New connection at ID " + str(connections[len(connections) - 1]))
+        total_connections += 1
+
 
 def byt(text):
 	return bytes(text, "utf-8")
@@ -37,6 +51,11 @@ if(not os.path.exists(diretorio)):
 s = socket(AF_INET, SOCK_STREAM)
 s.bind(("127.0.0.1", 10545))  #-
 s.listen(1)           #-
+
+newConnectionsThread = threading.Thread(target = newConnections, args = (sock,))
+newConnectionsThread.start()
+
+'''
 (conn, addr) = s.accept()  # returns new socket and addr. client
 while True:                # forever
   data = conn.recv(1024).decode()   # receive data from client
@@ -44,4 +63,7 @@ while True:                # forever
   command = data.split(" ")[0]
   if (command == "write"):
       write()
+  elif(command=="read"):
+	  read()
 conn.close()               # close the connection
+'''
