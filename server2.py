@@ -49,12 +49,13 @@ def deletaPublicacao(titulo, usuario):
 	if(os.path.isfile(diretorio + titulo + ".txt")):
 		arq = open(diretorio + titulo + ".txt", "r")
 		autor = arq.readline()
-
-		if(autor == usuario):
-			os.remove(diretorio + titulo + ".txt")
-			return True
 		
-		arq.close()
+		if(autor == usuario + "\n"):
+			arq.close()
+			os.remove(diretorio + titulo + ".txt")
+			
+			return True
+	
 
 	else:
 		return False
@@ -68,16 +69,14 @@ def recebeConexoesThread():
 
 	while(not exit):
 		client, ip = s.accept()
-		print(str(ip) + " has connected.")
-		client.send(convByte("Connected\n"))
 		Thread(target=opcoesUsuarioThread, args=(client, ip)).start()
 
 def opcoesUsuarioThread(client, ip):
 
-	client.send(convByte("Digite seu nome:"))
+	client.send(convByte("Escreva seu nome:"))
 	usuario = client.recv(4096).decode()
 
-	client.send(convByte("\nDigite o número da opção desejada:\n\n1 - Ver todas as publicações\n2 - Escrever uma nova publicação <titulo em 1 palavra> <texto>\n3 - Ler <publicacao>\n4 - Apagar <publicacao>\n5 - Sair\n"))
+	client.send(convByte("\nEscreva o número da opção desejada:\n\n1 - Ver todas as publicações\n2 - Escrever uma nova publicação\n3 - Ler publicação\n4 - Apagar publicação\n5 - Sair\n"))
 
 	if(True):
 		while(True):
@@ -88,25 +87,29 @@ def opcoesUsuarioThread(client, ip):
 				client.send(convByte(mostraPublicacoes()))
 			
 			elif(opcao == "2"):
-				titulo = entrada.split(" ")[1]
-				texto = " ".join(entrada.split(" ")[2:])
+				client.send(convByte("Escreva o título da sua publicação:\n"))
+				titulo = client.recv(4096).decode()
+				client.send(convByte("Escreva o conteúdo:\n"))
+				texto = client.recv(4096).decode()
 				if(novaPublicacao(titulo, usuario, texto)):
-					client.send(convByte("Message successfully sent\n"))
+					client.send(convByte("Publicação salva!\n"))
 				else:
-					client.send(convByte("There was a problem in your message\n"))
+					client.send(convByte("Erro ao concluir publicação.\n"))
 				continue
 
 			elif(opcao == "3"):
-				publicacao = entrada.split(" ")[1]
-				client.send(convByte(lerPublicacao(publicacao)))
+				client.send(convByte("Escreva o título da publicação que deseja ler:\n"))
+				titulo = client.recv(4096).decode()
+				client.send(convByte(lerPublicacao(titulo)))
 				continue
 
 			elif(opcao == "4"):
-				publicacao = entrada.split(" ")[1]
-				if(deletaPublicacao(publicacao, usuario)):
-					client.send(convByte("Publicação apagada\n"))
+				client.send(convByte("Escreva o título da publicação que quer apagar:\n Obs.:Você só pode apagar uma publicação de sua autoria!\n"))
+				titulo = client.recv(4096).decode()
+				if(deletaPublicacao(titulo, usuario)):
+					client.send(convByte("Publicação apagada.\n"))					
 				else:
-					client.send(convByte("Publicação não encontrada\n"))
+					client.send(convByte("Publicação não encontrada.\n"))
 				continue
 
 			elif(opcao == "5"):
