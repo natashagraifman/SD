@@ -7,8 +7,8 @@ total_connections = 0
 
 
 def mostraPublicacoes():
-	global diretorio
-
+	#Printa na tela o título de todas as publicações
+	
 	todasPub = ""
 
 	for root,dirs,files in os.walk(diretorio):
@@ -23,8 +23,8 @@ def mostraPublicacoes():
 		return todasPub
 
 def novaPublicacao(titulo, usuario, texto):
-	global diretorio
-
+	#cria um novo arquivo na pasta publicações com o titulo da publicação sendo o nome do arquivo, e escreve o nome do autor e o conteúdo
+	
 	try:
 		arq = open(diretorio + titulo + ".txt", "w")
 		arq.write(usuario + "\n" + texto)
@@ -36,7 +36,7 @@ def novaPublicacao(titulo, usuario, texto):
 		return False
 
 def lerPublicacao(titulo):
-	global diretorio
+	#Procura publicação digitada e se existir, printa ela na tela
 
 	if(os.path.isfile(diretorio + titulo + ".txt")):
 		arq = open(diretorio + titulo + ".txt", "r")
@@ -48,7 +48,7 @@ def lerPublicacao(titulo):
 		return "Publicação não existe."
 
 def deletaPublicacao(titulo, usuario):
-	global diretorio
+	#se a pessoa que tenta apagar é a autora do arquivo e ele existe, ele é apagado
 
 	if(os.path.isfile(diretorio + titulo + ".txt")):
 		arq = open(diretorio + titulo + ".txt", "r")
@@ -74,18 +74,29 @@ def pegaNomes():
 			autor = arq.readline()
 			if autor not in nomes:
 				nomes += autor + "\n"
+		arq.close()
 	return nomes
 
+def salvaInscricao(autor, usuario):
+	#Salva num arquivo o autor e seus inscritos
+	arq = open(subscribe + autor + ".txt", "a")
+	arq.write(usuario + " 0" + "\n")
+	arq.close()
+	return "Inscrição realizada com sucesso!"
+	
+
 def convByte(texto):
+	#transforma string em bytes
 	return bytes(texto, "utf-8")
 
 def recebeConexoesThread(socket):
+	#Aceita todas as requisições de conexão e inicia uma thread pra cada usuário
 	while True:
 		s, address = socket.accept()
 		Thread(target=opcoesUsuarioThread, args=(s, adress)).start()
 
 def opcoesUsuarioThread(client, ip):
-
+	#menu de opções pro usuário
 	client.send(convByte("Escreva seu nome:"))
 	usuario = client.recv(4096).decode()
 
@@ -99,6 +110,7 @@ def opcoesUsuarioThread(client, ip):
 				client.send(convByte(mostraPublicacoes()))
 
 			elif(opcao == "2"):
+				#Usuario digita titulo e conteúdo da publicação
 				client.send(convByte("Escreva o título da sua publicação:\n"))
 				titulo = client.recv(4096).decode()
 				client.send(convByte("Escreva o conteúdo:\n"))
@@ -110,12 +122,14 @@ def opcoesUsuarioThread(client, ip):
 				continue
 
 			elif(opcao == "3"):
+				#Procura publicação digitada e se existir, printa ela na tela
 				client.send(convByte("Escreva o título da publicação que deseja ler:\n"))
 				titulo = client.recv(4096).decode()
 				client.send(convByte(lerPublicacao(titulo)))
 				continue
 
 			elif(opcao == "4"):
+				#Usuario digita nome da publicação e ele chama função pra encontrar e se existir, apagar
 				client.send(convByte("Escreva o título da publicação que quer apagar:\n Obs.:Você só pode apagar uma publicação de sua autoria!\n"))
 				titulo = client.recv(4096).decode()
 				client.send(convByte(deletaPublicacao(titulo, usuario)))
@@ -124,26 +138,29 @@ def opcoesUsuarioThread(client, ip):
 			elif(opcao == "5"):
 				#Printa o nome de todos os autores disponíveis para inscrição
 				client.send(convByte("Nome dos autores que você pode se inscrever:")) 
-				client.send(convByte(pegaNomes))
+				client.send(convByte(pegaNomes()))
 				client.send(convByte("Em qual deseja se inscrever?"))
 				autor = client.recv(4096).decode()
 				client.send(convByte(salvaInscricao(autor, usuario)))
 				continue
 
 			elif(opcao == "6"):
-				client.send(convByte("exit"))
+				client.send(convByte("Desconectado."))
 				print(str(ip) + " disconnected\n")
 				return
 
 diretorio = os.getcwd() + "\\Publicações\\"
+subscribe = os.getcwd() + "\\Inscrições\\"
 
 host = "127.0.0.1"
 port = 33000
 adress = (host, port)
-exit = False
 
 if(not os.path.exists(diretorio)):
 	os.system("mkdir Publicações")
+
+if(not os.path.exists(subscribe)):
+	os.system("mkdir Inscrições")
 
 s = socket(AF_INET, SOCK_STREAM)
 s.bind((host, port))
