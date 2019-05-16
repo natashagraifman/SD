@@ -64,6 +64,22 @@ def deletaPublicacao(titulo, usuario):
 	else:
 		return "Publicação não encontrada."
 
+def pegaNomes():
+	#Pega o nome de todos os autores que publicaram pelo menos uma vez
+	nomes = ""
+	
+	for root,dirs,files in os.walk(diretorio):
+		for publicacao in files:
+			arq = open(diretorio + publicacao, "r")
+			autor = arq.readline()
+			if autor not in nomes:
+				nomes += autor + "\n"
+	return nomes
+
+def salvaInscricao(autor, usuario):
+	#Salva num arquivo dicionário a relação entre os autores e seus inscritos
+	
+
 def convByte(texto):
 	return bytes(texto, "utf-8")
 
@@ -77,13 +93,12 @@ def opcoesUsuarioThread(client, ip):
 	client.send(convByte("Escreva seu nome:"))
 	usuario = client.recv(4096).decode()
 
-	client.send(convByte("\nEscreva o número da opção desejada:\n\n1 - Ver todas as publicações\n2 - Escrever uma nova publicação\n3 - Ler publicação\n4 - Apagar publicação\n5 - Sair\n"))
+	client.send(convByte("\nEscreva o número da opção desejada:\n\n1 - Ver todas as publicações\n2 - Escrever uma nova publicação\n3 - Ler publicação\n4 - Apagar publicação\n5 - Se inscrever\n6 - Sair\n"))
 
 	if(True):
 		while(True):
-			entrada = client.recv(4096).decode()
-			opcao = entrada.split(" ")[0]
-
+			opcao = client.recv(4096).decode()
+			
 			if(opcao == "1"):
 				client.send(convByte(mostraPublicacoes()))
 
@@ -111,6 +126,15 @@ def opcoesUsuarioThread(client, ip):
 				continue
 
 			elif(opcao == "5"):
+				#Printa o nome de todos os autores disponíveis para inscrição
+				client.send(convByte("Nome dos autores que você pode se inscrever:")) 
+				client.send(convByte(pegaNomes))
+				client.send(convByte("Em qual deseja se inscrever?"))
+				autor = client.recv(4096).decode()
+				client.send(convByte(salvaInscricao(autor, usuario)))
+				continue
+
+			elif(opcao == "6"):
 				client.send(convByte("exit"))
 				print(str(ip) + " disconnected\n")
 				return
