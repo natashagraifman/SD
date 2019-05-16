@@ -76,10 +76,6 @@ def pegaNomes():
 				nomes += autor + "\n"
 	return nomes
 
-def salvaInscricao(autor, usuario):
-	#Salva num arquivo dicionário a relação entre os autores e seus inscritos
-	
-
 def convByte(texto):
 	return bytes(texto, "utf-8")
 
